@@ -4,7 +4,7 @@
 Logos are ICAO-named marks from github.com/Jxck-S/airline-logos, pinned to one
 commit: FlightAware's 90 px set first, then RadarBox and the repository's custom
 marks. They remain their owners' trademarks and are bundled only to identify
-flights on this private display. Also writes web/airlines.mjs: the logos the page
+flights on this display. Also writes web/airlines.mjs: the logos the page
 may request, and IATA designators for readable flight numbers ("UA 696").
 --offline keeps the bundled logos and only regenerates web/airlines.mjs.
 """
