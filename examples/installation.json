@@ -1,0 +1,12 @@
+{
+  "base_url": "https://homeassistant.example:8123",
+  "remote": "remote.overhead_tv",
+  "player": "media_player.overhead_tv",
+  "adb_player": "media_player.overhead_tv_adb",
+  "house_mode": "input_select.house_mode",
+  "wake_script": "script.office_tv_ensure_awake",
+  "art_script": "script.office_tv_art_mode",
+  "tv_addresses": [],
+  "use_bzn_board": false,
+  "key_file": null
+}

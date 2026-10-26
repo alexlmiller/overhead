@@ -1,0 +1,147 @@
+# Airlines the display knows: ICAO code, IATA designator (- when callsigns
+# should stay as broadcast), name. `make airline-logos` bundles each logo into
+# web/logos/ (codes the source lacks are reported and skipped); `make airlines`
+# regenerates web/airlines.mjs from this list and the bundled logos offline.
+# Scope: airlines, cargo, charter and fractional operators plausible over Montana.
+
+# US passenger
+AAL AA American
+ASA AS Alaska
+DAL DL Delta
+UAL UA United
+SWA WN Southwest
+JBU B6 JetBlue
+FFT F9 Frontier
+NKS NK Spirit
+AAY G4 Allegiant
+SCX SY Sun Country
+HAL HA Hawaiian
+MXY MX Breeze
+VXP XP Avelo
+# US regional
+SKW OO SkyWest
+QXE QX Horizon
+RPA YX Republic
+ENY MQ Envoy
+EDV 9E Endeavor
+JIA OH PSA
+PDT PT Piedmont
+ASH YV Mesa
+GJS G7 GoJet
+CPZ CP Compass
+UCA C5 CommutAir
+AWI ZW Air Wisconsin
+KAP 9K Cape Air
+SIL 3M Silver Airways
+# US cargo and feeders
+FDX FX FedEx
+UPS 5X UPS
+GTI 5Y Atlas Air
+ABX GB ABX Air
+ATN 8C Air Transport International
+PAC PO Polar Air Cargo
+CKS K4 Kalitta Air
+NCR N8 National Airlines
+WGN KD Western Global
+AMF - Ameriflight
+CFS EM Empire Airlines
+AIP 5A Alpine Air Express
+LYM - Key Lime Air
+MTN - Mountain Air Cargo
+# US charter, fractional and government
+EJA - NetJets
+LXJ - Flexjet
+EJM - Executive Jet Management
+JTL - Jet Linx
+XOJ - XO
+WUP - Wheels Up
+VJT - VistaJet
+JAS - Jet Aviation
+TWY - Solairus
+OAE OY Omni Air International
+SWQ WQ iAero
+GXA - GlobalX
+RCH - Air Mobility Command
+CNV - US Navy
+PAT - US Army Priority Air Transport
+# Canada
+ACA AC Air Canada
+ROU RV Air Canada Rouge
+JZA QK Jazz
+WJA WS WestJet
+WEN WR WestJet Encore
+SWG WG Sunwing
+TSC TS Air Transat
+POE PD Porter
+FLE F8 Flair
+CJT W8 Cargojet
+ASP - AirSprint
+PCO 8P Pacific Coastal
+# Mexico and Latin America
+AMX AM Aeromexico
+SLI 5D Aeromexico Connect
+VOI Y4 Volaris
+VIV VB VivaAerobus
+CMP CM Copa
+AVA AV Avianca
+LAN LA LATAM
+TAM JJ LATAM Brasil
+GLO G3 Gol
+AZU AD Azul
+# Europe
+BAW BA British Airways
+VIR VS Virgin Atlantic
+DLH LH Lufthansa
+AFR AF Air France
+KLM KL KLM
+SAS SK SAS
+FIN AY Finnair
+ICE FI Icelandair
+EIN EI Aer Lingus
+SWR LX Swiss
+AUA OS Austrian
+BEL SN Brussels Airlines
+IBE IB Iberia
+TAP TP TAP Air Portugal
+LOT LO LOT
+THY TK Turkish Airlines
+CFG DE Condor
+EDW WK Edelweiss
+# Middle East, Asia and Pacific
+UAE EK Emirates
+QTR QR Qatar Airways
+ETD EY Etihad
+SVA SV Saudia
+ELY LY El Al
+KAL KE Korean Air
+AAR OZ Asiana
+JAL JL Japan Airlines
+ANA NH All Nippon Airways
+TZP ZG ZIPAIR
+CPA CX Cathay Pacific
+EVA BR EVA Air
+CAL CI China Airlines
+CCA CA Air China
+CES MU China Eastern
+CSN CZ China Southern
+HVN VN Vietnam Airlines
+SIA SQ Singapore Airlines
+QFA QF Qantas
+ANZ NZ Air New Zealand
+FJI FJ Fiji Airways
+PAL PR Philippine Airlines
+THA TG Thai Airways
+AIC AI Air India
+# International cargo
+CLX CV Cargolux
+ICV C8 Cargolux Italia
+BOX 3S AeroLogic
+GEC LH Lufthansa Cargo
+CAO CA Air China Cargo
+CKK CK China Cargo Airlines
+SQC SQ Singapore Airlines Cargo
+NCA KZ Nippon Cargo Airlines
+MPH MP Martinair
+AHK LD Air Hong Kong
+DHK D0 DHL Air UK
+BCS QY European Air Transport

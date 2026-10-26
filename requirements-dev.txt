@@ -1,0 +1,4 @@
+# Existing test dependencies, pinned to the validated extraction environment.
+PyYAML==6.0.3
+Jinja2==3.1.6
+MarkupSafe==3.0.3

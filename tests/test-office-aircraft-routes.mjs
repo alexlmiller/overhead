@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {RouteLookup,routeText} from '../web/routes.mjs';
+const plane={hex:'aabbcc',callsign:'N207BC',registration:'N207BC',position_timestamp:1000};
+const route={...plane,origin:'KDTO',destination:'BZN',flight:'N207BC',source:'FlightAware',valid_from:900,valid_until:1100,expires:2000};
+test('server route matches aircraft identity and observed flight interval',()=>{
+  const routes=new RouteLookup();routes.update([route]);
+  assert.equal(routeText(routes.get(plane,1500000)),'KDTO → BZN');
+  assert.equal(routes.get({...plane,hex:'ffffff'},1500000),null);
+  assert.equal(routes.get({...plane,callsign:'UAL123'},1500000),null);
+  assert.equal(routes.get({...plane,registration:'N12345'},1500000),null);
+  assert.equal(routes.get({...plane,position_timestamp:1200},1500000),null);
+  assert.equal(routes.get(plane,2000000),null);
+  assert.equal(routes.get({...plane,position_timestamp:undefined},1500000),null);
+});
+test('recent sightings use the observation time, not the next flight by that tail',()=>{
+  const routes=new RouteLookup();routes.update([route]);
+  assert.equal(routeText(routes.get({...plane,position_timestamp:undefined,last_seen:1000},1500000)),'KDTO → BZN');
+  routes.update([{...route,valid_from:1200,valid_until:1500}]);
+  assert.equal(routes.get({...plane,position_timestamp:undefined,last_seen:1000},1500000),null);
+});
+test('missing or malformed routes remain unavailable; demo stays independent',()=>{
+  const routes=new RouteLookup();routes.update(undefined);assert.equal(routeText(routes.get(plane)),'');
+  routes.update([{...route,origin:'<img>'}]);assert.equal(routes.get(plane,1500000),null);
+  routes.seed(plane,{origin:'KDTO',destination:'BZN'});assert.equal(routeText(routes.get(plane)),'KDTO → BZN');
+});
+test('archived sighting routes survive live rejection without leaking onto live aircraft',()=>{
+  const routes=new RouteLookup();routes.update([{...route,historical:true}]);
+  assert.equal(routes.get(plane,1500000),null);
+  const recent={...plane,position_timestamp:undefined,last_seen:1000};
+  assert.equal(routeText(routes.get(recent,1500000)),'KDTO → BZN');
+  routes.update([{...route,origin:'BZN',destination:'SEA'},{...route,historical:true}]);
+  assert.equal(routeText(routes.get(recent,1500000)),'KDTO → BZN');
+  assert.equal(routeText(routes.get(plane,1500000)),'BZN → SEA');
+});
+test('frontend cannot query route providers or carry the provider key',()=>{
+  const root=new URL('../web/',import.meta.url);
+  const source=readFileSync(new URL('routes.mjs',root),'utf8');
+  assert.doesNotMatch(source,/fetch\(|x-apikey|https:\/\//);
+  const html=readFileSync(new URL('index.html',root),'utf8');
+  assert.match(html,/connect-src 'self';/);assert.doesNotMatch(html,/api.adsbdb.com/);
+});

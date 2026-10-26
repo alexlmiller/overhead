@@ -1,0 +1,27 @@
+# Fresh installations only: do not duplicate existing UI-created helpers.
+input_boolean:
+  office_aircraft_alerts:
+    name: Office Aircraft Alerts
+    initial: false
+input_number:
+  office_aircraft_radius:
+    name: Office Aircraft Radius
+    min: 1
+    max: 10
+    step: 0.5
+    initial: 3
+    unit_of_measurement: mi
+input_select:
+  office_aircraft_session:
+    name: Office Aircraft Session
+    options: [Inactive, Automatic, Manual]
+    initial: Manual
+input_text:
+  office_aircraft_selected:
+    name: Office Aircraft Selected
+    max: 8
+    initial: ''
+  office_aircraft_recent:
+    name: Office Aircraft Recent
+    max: 255
+    initial: '[]'

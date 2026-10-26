@@ -1,0 +1,114 @@
+# Data only. Helpers, scripts, automations and dashboards remain HA API-owned.
+# No coordinates in this file: only the API query center is rounded to 2 decimals.
+rest:
+  # REST can initialize before zone.home. Zero is an inert ocean query until
+  # the next 5s poll; never let the missing zone abort the entire REST setup.
+  - resource_template: >-
+      https://opendata.adsb.fi/api/v3/lat/{{ state_attr('zone.home', 'latitude') | float(0) | round(2) }}/lon/{{ state_attr('zone.home', 'longitude') | float(0) | round(2) }}/dist/15
+    scan_interval: 5
+    timeout: 4
+    headers:
+      User-Agent: CanvasTV-aircraft-pilot/0.1 (personal home display)
+    sensor:
+      - name: Office Aircraft Feed
+        unique_id: office_aircraft_feed
+        icon: mdi:airplane
+        value_template: >-
+          {% set stamp = value_json.now | default(0) | float(0) %}
+          {{ stamp / 1000 if stamp > 100000000000 else stamp }}
+        json_attributes:
+          - ac
+
+recorder:
+  exclude:
+    entities:
+      - sensor.office_aircraft_feed
+      - sensor.office_aircraft_candidate
+      - sensor.office_aircraft_current
+
+template:
+  - triggers:
+      - trigger: state
+        entity_id:
+          - sensor.office_aircraft_feed
+          - input_text.office_aircraft_selected
+          - input_number.office_aircraft_radius
+      - trigger: time_pattern
+        seconds: /5
+    variables:
+      # Geometry and selection are computed once for both entities. Use an
+      # explicit miles conversion; HA's distance() follows the configured units.
+      selection: >-
+        {% set stamp = states('sensor.office_aircraft_feed') | float(0) %}
+        {% set age = as_timestamp(now()) - stamp %}
+        {% set radius = states('input_number.office_aircraft_radius') | float(3) %}
+        {% set selected = states('input_text.office_aircraft_selected') %}
+        {% set lat = state_attr('zone.home', 'latitude') | float %}
+        {% set lon = state_attr('zone.home', 'longitude') | float %}
+        {% set radians = 0.017453292519943295 %}
+        {% set ns = namespace(nearest={}, current={}, best=999999, inside=[]) %}
+        {% if -5 <= age <= 15 %}
+          {% set raw = state_attr('sensor.office_aircraft_feed', 'ac') | default([], true) %}
+          {% for a in (raw if raw is iterable else []) %}
+            {% if a is mapping and a.lat is number and a.lon is number
+                  and -85 <= a.lat <= 85 and -180 <= a.lon <= 180
+                  and a.hex is string and a.hex | regex_match('^[a-fA-F0-9]{6}$')
+                  and a.alt_baro is number
+                  and a.seen_pos is number and a.seen_pos >= 0
+                  and 0 <= a.seen_pos + age <= 20 %}
+              {% set x = (a.lon - lon) * radians * cos((lat + a.lat) / 2 * radians) %}
+              {% set y = (a.lat - lat) * radians %}
+              {% set miles = sqrt(x*x + y*y) * 3958.7613 %}
+              {% set record = dict(hex=a.hex, callsign=a.flight | default('') | trim,
+                  registration=a.r | default(''), aircraft_type=a.t | default(''),
+                  latitude=a.lat, longitude=a.lon, altitude_ft=a.alt_baro,
+                  speed_kt=a.gs | default(none), heading=a.track | default(none),
+                  distance_mi=miles | round(2), position_timestamp=stamp-a.seen_pos) %}
+              {% if miles <= radius %}
+                {% set ns.inside = ns.inside + [record] %}
+              {% endif %}
+              {% if miles <= radius and miles < ns.best %}
+                {% set ns.nearest = record %}{% set ns.best = miles %}
+              {% endif %}
+              {% if a.hex == selected and miles <= radius + 2 %}
+                {% set ns.current = record %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        {{ dict(candidate=ns.nearest, current=ns.current if selected not in
+            ['', 'unknown', 'unavailable'] else ns.nearest, feed_fresh=(-5 <= age <= 15), inside=ns.inside) }}
+    sensor:
+      - name: Office Aircraft Candidate
+        unique_id: office_aircraft_candidate
+        state: "{{ selection.candidate.hex | default('none') }}"
+        attributes:
+          aircraft: "{{ selection.candidate }}"
+          feed_fresh: "{{ selection.feed_fresh }}"
+          # Restorable history runs while the TV is closed; independent of
+          # the input_text helper used for alert suppression.
+          history: >-
+            {% set old = this.attributes.history | default([], true) %}
+            {% set ns = namespace(rows=[]) %}
+            {% set present = selection.inside | map(attribute='hex') | list %}
+            {% for a in selection.inside %}
+              {% set ns.rows = ns.rows + [dict(hex=a.hex, callsign=a.callsign,
+                  registration=a.registration, aircraft_type=a.aircraft_type,
+                  last_seen=a.position_timestamp)] %}
+            {% endfor %}
+            {% for a in (old if old is iterable else []) %}
+              {% if a is mapping and a.hex is string and a.hex not in present
+                    and a.last_seen is number %}
+                {% set ns.rows = ns.rows + [a] %}
+              {% endif %}
+            {% endfor %}
+            {{ (ns.rows | sort(attribute='last_seen', reverse=true))[:20] }}
+      - name: Office Aircraft Current
+        unique_id: office_aircraft_current
+        icon: mdi:airplane
+        state: "{{ selection.current.hex | default('none') }}"
+        attributes:
+          aircraft: "{{ selection.current }}"
+          latitude: "{{ selection.current.latitude | default(none) }}"
+          longitude: "{{ selection.current.longitude | default(none) }}"
+          feed_fresh: "{{ selection.feed_fresh }}"

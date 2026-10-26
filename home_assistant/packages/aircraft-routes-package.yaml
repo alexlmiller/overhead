@@ -1,0 +1,7 @@
+# Free commercial routes by default. Paid requests and local TV access are opt-in.
+office_aircraft_routes: {}
+
+recorder:
+  exclude:
+    entities:
+      - sensor.office_aircraft_routes

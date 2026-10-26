@@ -1,0 +1,14 @@
+{
+  "domain": "office_aircraft_routes",
+  "name": "Office Aircraft Routes",
+  "version": "1.1.0",
+  "documentation": "https://github.com/alexlmiller/overhead",
+  "codeowners": [
+    "@alexlmiller"
+  ],
+  "dependencies": [
+    "http"
+  ],
+  "requirements": [],
+  "iot_class": "cloud_polling"
+}

@@ -1,0 +1,626 @@
+# Display names for ICAO Doc 8643 type designators, tab-separated.
+# Curated names win over generated ones; keep them short enough for map tags
+# (28 characters). Rebuild web/aircraft-types.mjs with `make aircraft-types`.
+# Coverage: the ~500 most common US-registered types, airliners and military
+# types seen overhead, and non-ICAO codes used by ADS-B aircraft databases.
+
+# Airbus
+A318	Airbus A318
+A319	Airbus A319
+A320	Airbus A320
+A321	Airbus A321
+A19N	Airbus A319neo
+A20N	Airbus A320neo
+A21N	Airbus A321neo
+BCS1	Airbus A220-100
+BCS3	Airbus A220-300
+A306	Airbus A300-600
+A310	Airbus A310
+A332	Airbus A330-200
+A333	Airbus A330-300
+A338	Airbus A330-800
+A339	Airbus A330-900
+A343	Airbus A340-300
+A346	Airbus A340-600
+A359	Airbus A350-900
+A35K	Airbus A350-1000
+A388	Airbus A380
+A400	Airbus A400M Atlas
+C295	Airbus C295
+CN35	Airbus CN235
+
+# Boeing
+B712	Boeing 717
+B732	Boeing 737-200
+B733	Boeing 737-300
+B734	Boeing 737-400
+B735	Boeing 737-500
+B736	Boeing 737-600
+B737	Boeing 737-700
+B738	Boeing 737-800
+B739	Boeing 737-900
+B37M	Boeing 737 MAX 7
+B38M	Boeing 737 MAX 8
+B39M	Boeing 737 MAX 9
+B3XM	Boeing 737 MAX 10
+B752	Boeing 757-200
+B753	Boeing 757-300
+B762	Boeing 767-200
+B763	Boeing 767-300
+B764	Boeing 767-400
+B772	Boeing 777-200
+B77L	Boeing 777-200LR/777F
+B773	Boeing 777-300
+B77W	Boeing 777-300ER
+B778	Boeing 777-8
+B779	Boeing 777-9
+B788	Boeing 787-8
+B789	Boeing 787-9
+B78X	Boeing 787-10
+B742	Boeing 747-200
+B744	Boeing 747-400
+B748	Boeing 747-8
+
+# McDonnell Douglas and other airliners
+MD11	McDonnell Douglas MD-11
+MD83	McDonnell Douglas MD-83
+MD88	McDonnell Douglas MD-88
+MD90	McDonnell Douglas MD-90
+DC10	McDonnell Douglas DC-10
+DC3	Douglas DC-3
+E170	Embraer 170
+E75L	Embraer 175
+E75S	Embraer 175
+E190	Embraer 190
+E195	Embraer 195
+E290	Embraer E190-E2
+E295	Embraer E195-E2
+E135	Embraer ERJ 135
+E145	Embraer ERJ 145
+E45X	Embraer ERJ 145XR
+CRJ1	Bombardier CRJ100
+CRJ2	Bombardier CRJ200
+CRJ7	Bombardier CRJ700
+CRJ9	Bombardier CRJ900
+CRJX	Bombardier CRJ1000
+DH8A	De Havilland Dash 8-100
+DH8B	De Havilland Dash 8-200
+DH8C	De Havilland Dash 8-300
+DH8D	De Havilland Dash 8-400
+AT43	ATR 42-300
+AT45	ATR 42-500
+AT46	ATR 42-600
+AT72	ATR 72
+AT75	ATR 72-500
+AT76	ATR 72-600
+SF34	Saab 340
+SB20	Saab 2000
+D228	Dornier 228
+D328	Dornier 328
+J328	Dornier 328JET
+JS32	BAe Jetstream 32
+JS41	BAe Jetstream 41
+B461	BAe 146-100
+B462	BAe 146-200
+B463	BAe 146-300
+RJ85	Avro RJ85
+RJ1H	Avro RJ100
+F70	Fokker 70
+F100	Fokker 100
+SU95	Sukhoi Superjet 100
+AJ27	COMAC ARJ21
+C919	COMAC C919
+IL76	Ilyushin Il-76
+A124	Antonov An-124 Ruslan
+AN12	Antonov An-12
+SH36	Shorts 360
+SW4	Fairchild Metro
+BE99	Beechcraft 99
+B190	Beechcraft 1900
+
+# Business jets
+C500	Cessna Citation I
+C501	Cessna Citation I/SP
+C510	Cessna Citation Mustang
+C525	Cessna CitationJet CJ1
+C25A	Cessna Citation CJ2
+C25B	Cessna Citation CJ3
+C25C	Cessna Citation CJ4
+C25M	Cessna Citation M2
+C550	Cessna Citation II/Bravo
+C551	Cessna Citation II/SP
+C55B	Cessna Citation Bravo
+C560	Cessna Citation V/Encore
+C56X	Cessna Citation Excel/XLS
+C650	Cessna Citation III/VI/VII
+C680	Cessna Citation Sovereign
+C68A	Cessna Citation Latitude
+C700	Cessna Citation Longitude
+C750	Cessna Citation X
+E50P	Embraer Phenom 100
+E55P	Embraer Phenom 300
+E545	Embraer Praetor 500
+E550	Embraer Praetor 600
+E35L	Embraer Legacy 600/650
+CL30	Bombardier Challenger 300
+CL35	Bombardier Challenger 350
+CL60	Bombardier Challenger 600
+GL5T	Bombardier Global 5000
+GLEX	Bombardier Global 6000
+GL7T	Bombardier Global 7500
+LJ24	Learjet 24
+LJ25	Learjet 25
+LJ31	Learjet 31
+LJ35	Learjet 35
+LJ40	Learjet 40
+LJ45	Learjet 45
+LJ55	Learjet 55
+LJ60	Learjet 60
+LJ70	Learjet 70
+LJ75	Learjet 75
+GLF2	Gulfstream II
+GLF3	Gulfstream III
+GLF4	Gulfstream IV
+GLF5	Gulfstream V
+GLF6	Gulfstream G650
+G150	Gulfstream G150
+G280	Gulfstream G280
+GALX	Gulfstream G200
+ASTR	Gulfstream G100/Astra
+GA5C	Gulfstream G500
+GA6C	Gulfstream G600
+GA7C	Gulfstream G700
+GA8C	Gulfstream G800
+WW24	IAI Westwind
+FA10	Dassault Falcon 10
+FA20	Dassault Falcon 20
+FA50	Dassault Falcon 50
+F900	Dassault Falcon 900
+F2TH	Dassault Falcon 2000
+FA7X	Dassault Falcon 7X
+FA8X	Dassault Falcon 8X
+FA6X	Dassault Falcon 6X
+H25A	Hawker Siddeley 125
+H25B	Hawker 800
+H25C	Hawker 1000
+HA4T	Hawker 4000
+PRM1	Beechcraft Premier I
+BE40	Beechjet 400
+HDJT	HondaJet
+EA50	Eclipse 500
+SF50	Cirrus Vision Jet
+PC24	Pilatus PC-24
+SBR1	Sabreliner
+MU30	Mitsubishi Diamond
+
+# Turboprops and utility
+PC12	Pilatus PC-12
+PC6T	Pilatus PC-6 Porter
+PC7	Pilatus PC-7
+PC9	Pilatus PC-9
+PC21	Pilatus PC-21
+TBM7	Daher TBM 700
+TBM8	Daher TBM 850
+TBM9	Daher TBM 900
+K100	Daher Kodiak 100
+KODI	Daher Kodiak 100
+K900	Daher Kodiak 900
+BE9L	Beechcraft King Air 90
+BE9T	Beechcraft King Air F90
+BE10	Beechcraft King Air 100
+BE20	Beechcraft King Air 200
+BE30	Beechcraft King Air 300
+B350	Beechcraft King Air 350
+U21	Beechcraft U-21 Ute
+P46T	Piper Meridian/M500
+M600	Piper M600
+M700	Piper M700 Fury
+C208	Cessna 208 Caravan
+C408	Cessna SkyCourier
+C425	Cessna 425 Conquest I
+C441	Cessna 441 Conquest II
+MU2	Mitsubishi MU-2
+P180	Piaggio Avanti
+AC80	Turbo Commander 680
+AC90	Jetprop Commander 840/900
+AC95	Jetprop Commander 980/1000
+SW3	Swearingen Merlin III
+EPIC	Epic E1000
+LNP4	Lancair Propjet
+DHC2	De Havilland Beaver
+DH2T	De Havilland Turbo Beaver
+DHC3	De Havilland Otter
+DH3T	De Havilland Turbo Otter
+DHC6	De Havilland Twin Otter
+BN2P	Britten-Norman Islander
+GA8	GippsAero Airvan
+TUCA	Embraer Tucano
+
+# Agricultural and firefighting
+AT3P	Air Tractor AT-301
+AT3T	Air Tractor AT-402
+AT5T	Air Tractor AT-502
+AT6T	Air Tractor AT-602
+AT8T	Air Tractor AT-802
+SS2P	Ayres Thrush
+SS2T	Ayres Turbo Thrush
+A660	Thrush 660
+G164	Grumman Ag Cat
+C188	Cessna 188 AgWagon
+PA25	Piper Pawnee
+PA36	Piper Pawnee Brave
+
+# Cessna pistons
+C120	Cessna 120
+C140	Cessna 140
+C150	Cessna 150
+C152	Cessna 152
+C162	Cessna 162 Skycatcher
+C170	Cessna 170
+C172	Cessna 172 Skyhawk
+C72R	Cessna 172RG Cutlass
+C175	Cessna 175 Skylark
+C177	Cessna 177 Cardinal
+C77R	Cessna 177RG Cardinal
+C180	Cessna 180 Skywagon
+C182	Cessna 182 Skylane
+C82R	Cessna R182 Skylane RG
+C82S	Cessna T182 Skylane
+C82T	Cessna TR182 Skylane RG
+C185	Cessna 185 Skywagon
+C190	Cessna 190
+C195	Cessna 195
+C206	Cessna 206 Stationair
+T206	Cessna T206 Stationair
+C207	Cessna 207 Skywagon
+C210	Cessna 210 Centurion
+T210	Cessna T210 Centurion
+P210	Cessna P210 Centurion
+C303	Cessna 303 Crusader
+C310	Cessna 310
+C320	Cessna 320 Skyknight
+C337	Cessna 337 Skymaster
+P337	Cessna P337 Skymaster
+C340	Cessna 340
+C402	Cessna 402
+C404	Cessna 404 Titan
+C414	Cessna 414 Chancellor
+C421	Cessna 421 Golden Eagle
+O1	Cessna O-1 Bird Dog
+COL3	Cessna 350 Corvalis
+COL4	Cessna 400 Corvalis TT
+C240	Cessna TTx
+
+# Piper
+P28A	Piper Cherokee/Archer
+P28B	Piper Dakota/Cherokee 235
+P28R	Piper Arrow
+P28T	Piper Arrow IV
+P28U	Piper Turbo Arrow IV
+PA32	Piper Saratoga/Six
+P32R	Piper Lance/Saratoga SP
+P32T	Piper Lance II
+PA34	Piper Seneca
+PA44	Piper Seminole
+PA46	Piper Malibu/M350
+PA18	Piper Super Cub
+PA12	Piper Super Cruiser
+PA11	Piper Cub Special
+J2	Piper J-2 Cub
+J3	Piper J-3 Cub
+J4	Piper J-4 Cub Coupe
+J5	Piper J-5 Cub Cruiser
+PA14	Piper Family Cruiser
+PA15	Piper Vagabond
+PA16	Piper Clipper
+PA17	Piper Vagabond
+PA20	Piper Pacer
+PA22	Piper Tri-Pacer
+PA23	Piper Apache
+PA24	Piper Comanche
+PA27	Piper Aztec
+PA30	Piper Twin Comanche
+PA31	Piper Navajo
+PA38	Piper Tomahawk
+AEST	Piper Aerostar
+
+# Beechcraft
+BE17	Beechcraft Staggerwing
+BE18	Beechcraft Model 18
+BE19	Beechcraft Sport
+BE23	Beechcraft Musketeer
+BE24	Beechcraft Sierra
+BE33	Beechcraft Bonanza 33
+BE35	Beechcraft V35 Bonanza
+BE36	Beechcraft Bonanza 36
+BT36	Beechcraft Turbo Bonanza
+B36T	Beechcraft Turbine Bonanza
+BE50	Beechcraft Twin Bonanza
+BE55	Beechcraft Baron 55
+BE58	Beechcraft Baron 58
+B58T	Beechcraft Baron 58P/TC
+BE60	Beechcraft Duke
+BE65	Beechcraft Queen Air
+BE76	Beechcraft Duchess
+BE77	Beechcraft Skipper
+BE95	Beechcraft Travel Air
+T34P	Beechcraft T-34 Mentor
+
+# Other certified pistons
+M20P	Mooney M20
+M20T	Mooney M20 Turbo
+MITE	Mooney Mite
+SR20	Cirrus SR20
+SR22	Cirrus SR22
+S22T	Cirrus SR22T
+DA40	Diamond DA40
+DA42	Diamond DA42 Twin Star
+DA62	Diamond DA62
+DV20	Diamond DA20 Katana
+DIMO	Diamond Dimona
+AA1	Grumman AA-1 Yankee
+AA5	Grumman AA-5 Tiger
+AC11	Commander 112/114
+M200	Aero Commander 200
+AC50	Aero Commander 500
+NAVI	Navion
+ERCO	Ercoupe
+GC1	Globe Swift
+L8	Luscombe Silvaire
+CH7A	Aeronca Champ
+CH7B	Champion Citabria
+BL8	Champion Decathlon/Scout
+AR11	Aeronca Chief
+AR15	Aeronca Sedan
+AR65	Aeronca Super Chief
+AR6T	Aeronca Tandem
+TAYB	Taylorcraft BC
+TAYD	Taylorcraft D
+TF19	Taylorcraft F-19
+S108	Stinson 108 Voyager
+S10	Stinson Voyager
+L5	Stinson L-5 Sentinel
+RELI	Stinson Reliant
+BL17	Bellanca Viking
+B14A	Bellanca Cruisair
+M4	Maule M-4
+M5	Maule M-5
+M6	Maule M-6
+M7	Maule M-7
+HUSK	Aviat Husky
+EAGL	Aviat Eagle
+CC11	CubCrafters Carbon Cub
+CC19	CubCrafters XCub
+COUR	Helio Courier
+G44	Grumman Widgeon
+TOBA	Socata Tobago
+TAMP	Socata Tampico
+TB20	Socata Trinidad
+RALL	Socata Rallye
+DR40	Robin DR400
+P68	Partenavia P68
+F260	SIAI-Marchetti SF.260
+Z42	Zlin Z-42/142/242
+D11	Jodel D11
+G115	Grob G 115
+G109	Grob G 109
+SF25	Scheibe Falke
+A210	Aquila A210
+
+# Vintage, warbirds and aerobatic
+T6	North American T-6 Texan
+T28	North American T-28 Trojan
+P51	North American P-51 Mustang
+ST75	Boeing-Stearman Kaydet
+WACF	Waco F-series
+WACO	Waco biplane
+WACC	Waco Cabin
+FA24	Fairchild 24
+FA62	Fairchild PT-19
+PT22	Ryan PT-22 Recruit
+VALI	Vultee BT-13 Valiant
+N3N	NAF N3N Canary
+CUCA	Culver Cadet
+DG15	Howard DGA-15
+S1	Interstate Cadet
+SKYR	Rearwin Skyranger
+FNKB	Funk B
+G2T1	Great Lakes 2T-1
+DHC1	De Havilland Chipmunk
+DH82	De Havilland Tiger Moth
+YK52	Yakovlev Yak-52
+CJ6	Nanchang CJ-6
+L39	Aero L-39 Albatros
+L29	Aero L-29 Delfin
+PTS1	Pitts S-1
+PTS2	Pitts S-2
+E300	Extra 300
+GB1	GameBird GB1
+BOLT	Steen Skybolt
+SA30	Stolp Starduster Too
+CB1	Hatz Biplane
+ACR2	Acro Sport II
+BIPL	EAA Biplane
+DSA1	Smith Miniplane
+MOR2	Varga Kachina
+
+# Experimental and light sport
+RV3	Van's RV-3
+RV4	Van's RV-4
+RV6	Van's RV-6
+RV7	Van's RV-7
+RV8	Van's RV-8
+RV9	Van's RV-9
+RV10	Van's RV-10
+RV12	Van's RV-12
+RV14	Van's RV-14
+GLAS	Glasair
+GLST	GlaStar
+LNC2	Lancair 320/360
+LNC4	Lancair IV
+LNCE	Lancair ES
+LEG2	Lancair Legacy
+VELO	Velocity
+LGEZ	Rutan Long-EZ
+VEZE	Rutan VariEze
+COZY	Cozy
+KR2	Rand KR-2
+SONX	Sonex
+WAIX	Sonex Waiex
+ONEX	Sonex Onex
+CH60	Zenith Zodiac CH 601
+CH65	Zenith Zodiac CH 650
+CH70	Zenith STOL CH 701
+CH75	Zenith STOL CH 750
+RS12	Rans S-12 Airaile
+COY2	Rans S-6 Coyote II
+CRER	Rans S-7 Courier
+SAKO	Rans S-10 Sakota
+VTRA	Rans S-19 Venterra
+RS21	Rans S-21 Outbound
+AVID	Avid Flyer
+BEAR	Bearhawk
+HIGH	Just Highlander
+SSTL	Just SuperSTOL
+MUS2	Bushby Mustang II
+MIMU	Bushby Midget Mustang
+SRAI	Sonerai
+TAIL	Wittman Tailwind
+T18	Thorp T-18
+FB1A	Bowers Fly Baby
+BD4	Bede BD-4
+RLU1	Breezy
+DFLY	Dragonfly
+PULS	Pulsar
+RBEL	Murphy Rebel
+CAMP	Pietenpol Air Camper
+HROC	Harmon Rocket
+VP2	Evans VP-2
+TRDO	Titan Tornado
+VR7	Vashon Ranger
+SLG4	Sling 4
+EUPA	Europa
+CRUZ	SportCruiser
+FDCT	Flight Design CT
+EFOX	AeroTrek A240
+EVSS	Evektor SportStar
+EV97	Evektor EuroStar
+JAB4	Jabiru J430
+PIAT	Pipistrel Alpha Trainer
+PIVI	Pipistrel Virus
+PISI	Pipistrel Sinus
+NG5	BRM Bristell
+BR23	BRM Bristell B23
+GX	Remos GX
+G3	Remos G-3
+TL20	TL Sting
+SIRA	Tecnam P2002 Sierra
+P208	Tecnam P2008
+P06T	Tecnam P2006T
+TWEN	Tecnam P2010
+ECHO	Tecnam P92 Echo
+SVNH	ICP Savannah
+AP22	Aeroprakt A-22 Foxbat
+AP32	Aeroprakt A-32 Vixxen
+VL3	JMB VL-3
+C42	Ikarus C42
+WT9	Aerospool Dynamic
+PNR3	Alpi Pioneer 300
+FK9	B&F FK9
+BREZ	Breezer
+ALIG	Arion Lightning
+SKRA	Best Off Sky Ranger
+ACAM	Air Cam
+
+# Amphibians and gyroplanes
+SREY	SeaRey
+A5	Icon A5
+LA4	Lake Buccaneer
+LA25	Lake Renegade
+RC3	Republic Seabee
+PETR	Super Petrel
+AVTR	Aventura
+CLON	AutoGyro Cavalon
+MT	AutoGyro MTOsport
+RAF2	RAF 2000
+
+# Helicopters
+R22	Robinson R22
+R44	Robinson R44
+R66	Robinson R66
+B06	Bell 206 JetRanger
+B505	Bell 505 Jet Ranger X
+B407	Bell 407
+B412	Bell 412
+B429	Bell 429
+B212	Bell 212
+B47G	Bell 47
+UH1	Bell UH-1 Huey
+H500	MD 500
+EN28	Enstrom F-28
+EN48	Enstrom 480
+H269	Schweizer 300
+UH12	Hiller UH-12
+EXEC	RotorWay Exec
+AS50	Airbus AS350 AStar
+AS55	Airbus AS355 TwinStar
+EC20	Airbus EC120
+EC30	Airbus EC130
+EC35	Airbus EC135
+EC45	Airbus EC145
+EC25	Airbus H225 Super Puma
+AS32	Airbus Super Puma
+AS65	Airbus AS365 Dolphin
+B105	MBB Bo 105
+A109	Leonardo AW109
+A119	Leonardo AW119 Koala
+A139	Leonardo AW139
+A169	Leonardo AW169
+S76	Sikorsky S-76
+S92	Sikorsky S-92
+S61	Sikorsky S-61
+NH90	NHIndustries NH90
+MI8	Mil Mi-8/17
+G2CA	Guimbal Cabri G2
+
+# Military
+C130	C-130 Hercules
+C30J	C-130J Super Hercules
+C17	C-17 Globemaster III
+C5M	C-5M Super Galaxy
+K35R	KC-135 Stratotanker
+E3TF	E-3 Sentry
+E6	E-6 Mercury
+P8	P-8 Poseidon
+P3	P-3 Orion
+R135	RC-135
+B52	B-52 Stratofortress
+B1	B-1 Lancer
+B2	B-2 Spirit
+F15	F-15 Eagle
+F16	F-16 Fighting Falcon
+F18H	F/A-18 Hornet
+F18S	F/A-18 Super Hornet
+F22	F-22 Raptor
+F35	F-35 Lightning II
+A10	A-10 Thunderbolt II
+T38	T-38 Talon
+TEX2	T-6 Texan II
+HAWK	BAE Hawk
+U2	U-2 Dragon Lady
+H60	UH-60 Black Hawk
+H47	CH-47 Chinook
+H64	AH-64 Apache
+H53S	CH-53E Super Stallion
+V22	V-22 Osprey
+MRF1	Mirage F1
+
+# Non-ICAO codes used by ADS-B aircraft databases
+BALL	Balloon
+GLID	Glider
+ULAC	Ultralight
+GYRO	Gyroplane
+UHEL	Ultralight helicopter
+SHIP	Airship
+DRON	Drone
+PARA	Paraglider
