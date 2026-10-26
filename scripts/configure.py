@@ -49,8 +49,8 @@ def build(config, output):
     for name in ('web/core.mjs','custom_components/office_aircraft_routes/model.py','scripts/office-aircraft-config.py'):
         path = output/name
         text = path.read_text()
-        for old, new in sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True):
-            text = text.replace(old, new)
+        pattern = '|'.join(re.escape(old) for old in sorted(replacements, key=len, reverse=True))
+        text = re.sub(pattern, lambda match: replacements[match.group()], text)
         if name.endswith('model.py'):
             needle = 'TV_ADDRESSES = frozenset()'
             if text.count(needle) != 1:

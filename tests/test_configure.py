@@ -36,6 +36,21 @@ class ConfigureTests(unittest.TestCase):
                 configure.build({}, output)
         self.assertEqual((ROOT/'web/core.mjs').read_bytes(), original)
 
+    def test_partial_and_overlapping_entity_overrides_are_not_rewritten_twice(self):
+        with tempfile.TemporaryDirectory() as folder:
+            output = configure.build({'player': 'media_player.lounge'}, Path(folder)/'partial')
+            recovery = (output/'scripts/office-aircraft-config.py').read_text()
+            self.assertIn('media_player.overhead_tv_adb', recovery)
+            self.assertNotIn('media_player.lounge_adb', recovery)
+            output = configure.build({
+                'remote': 'remote.overhead_tv_extra',
+                'player': 'media_player.overhead_tv_adb',
+                'adb_player': 'media_player.other_adb',
+            }, Path(folder)/'overlap')
+            core = (output/'web/core.mjs').read_text()
+            self.assertIn('media_player.overhead_tv_adb', core)
+            self.assertNotIn('media_player.other_adb', core)
+
     def test_public_defaults_need_no_paid_key_and_expose_no_tokenless_feed(self):
         with tempfile.TemporaryDirectory() as folder:
             output = configure.build({}, Path(folder)/'build')
