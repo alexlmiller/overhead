@@ -32,7 +32,7 @@
 /* Quieter alternatives: flight-first ledger or route-first summaries. */
 :root:not([data-panel-style="detailed"]) .recent-route .route-codes{display:none}
 :root:not([data-panel-style="detailed"]) .recent-name{font-family:var(--sans);font-size:clamp(12px,1vw,24px);font-weight:500;letter-spacing:.01em}
-:root:not([data-panel-style="detailed"]) .recent-row{padding:1vh 0;border-bottom:0;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) auto}
+:root:not([data-panel-style="detailed"]) .recent-row{padding:1vh 0;border-bottom:1px solid #cccebf80;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) auto}
 :root:not([data-panel-style="detailed"]) .recent-type{font-size:clamp(8px,.6vw,14px);margin-top:3px}
 :root:not([data-panel-style="detailed"]) .recent-time{font-size:clamp(8px,.6vw,14px)}
 :root:not([data-panel-style="detailed"]) .recent-route{font-size:clamp(10px,.78vw,19px)}
@@ -61,3 +61,5 @@
 .route-city{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .route-code{flex:none;font:400 .66em var(--sans);color:var(--muted);letter-spacing:.02em}
 .route-arrow{flex:none;font-family:var(--sans)}
+
+:root:not([data-panel-style="detailed"]) .recent-row:last-child{border-bottom:0}
