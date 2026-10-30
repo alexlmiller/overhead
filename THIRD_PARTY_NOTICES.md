@@ -20,3 +20,10 @@ terms for the bundled datasets and logos. Preserve their source attribution.
 - **Flight providers:** no live provider records, account credentials, or runtime
   route database are distributed. Runtime data access remains subject to each
   provider's terms; the software license does not grant provider permissions.
+
+## Airport city labels
+
+`web/airport-cities.mjs` derives from [OurAirports airports.csv](https://ourairports.com/data/),
+downloaded 2026-10-30. OurAirports releases its data to the public domain without
+accuracy guarantees. Only airport identifiers and municipality names are bundled;
+explicit served-city overrides are maintained in `scripts/build-airport-cities.py`.

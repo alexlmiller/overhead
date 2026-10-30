@@ -131,7 +131,7 @@ async function runPage(search,fetcher){
       append(...nodes){this.children.push(...nodes);},replaceChildren(...nodes){this.children=nodes;}});
     return elements.get(id);
   };
-  globalThis.document={getElementById:element,createElement:()=>element(Symbol()),createElementNS:()=>element(Symbol()),visibilityState:'visible',addEventListener(){}};
+  globalThis.document={documentElement:{dataset:{}},getElementById:element,createElement:()=>element(Symbol()),createElementNS:()=>element(Symbol()),visibilityState:'visible',addEventListener(){}};
   const listeners={};
   globalThis.window={addEventListener(type,listener){listeners[type]=listener;}};
   globalThis.location={search,pathname:PAGE_PATH};
@@ -277,4 +277,11 @@ test('a close pair can use opposite sides without long leader lines',()=>{
   const [a,b]=labels.map(p=>p.box);
   assert.ok(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y);
   assert.equal(b.h,33);
+});
+test('recent visits keep return trips by the same aircraft separate',()=>{
+  const records=[{hex:'aabbcc',callsign:'N123',registration:'N123',last_seen:NOW/1000-60,visit_id:'2'},
+                 {hex:'aabbcc',callsign:'N123',registration:'N123',last_seen:NOW/1000-1800,visit_id:'1'}];
+  const states={[IDS.routes]:{attributes:{history:records}}};
+  assert.equal(recentSightings(states,[],NOW).length,2);
+  assert.equal(recentSightings(states,[{hex:'aabbcc'}],NOW).length,0);
 });

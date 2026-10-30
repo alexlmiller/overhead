@@ -412,3 +412,93 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+class VisitHistoryTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.path = Path(self.temp.name)/'history.sqlite'
+        self.history = m.History(self.path)
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def test_restart_gap_identity_and_background(self):
+        first = self.history.observe([AIRLINE], NOW)[0]
+        same = m.History(self.path).observe([{**AIRLINE,'observed':NOW+599}],NOW+599)[0]
+        self.assertEqual(first['visit_id'],same['visit_id'])
+        later = self.history.observe([{**AIRLINE,'observed':NOW+1200}],NOW+1200)[0]
+        self.assertNotEqual(first['visit_id'],later['visit_id'])
+        changed = self.history.observe([{**AIRLINE,'callsign':'UAL999','observed':NOW+1201}],NOW+1201)[0]
+        self.assertNotEqual(later['visit_id'],changed['visit_id'])
+        outside = self.history.observe([{**AIRLINE,'inside':False,'observed':NOW+2400}],NOW+2400)[0]
+        self.assertNotIn('visit_id',outside)
+        self.assertEqual(self.history.snapshot(NOW+2400)['diagnostics']['visits'],3)
+
+    def test_route_and_diagnostics_survive_cache_expiry_without_positions(self):
+        a = self.history.observe([{**AIRLINE,'aircraft_type':'B738'}],NOW)[0]
+        route = {**m.commercial_route(CHAIN,AIRLINE),'evidence':'standing_route'}
+        self.history.decision(a,'ADSB.lol','accepted',NOW,route)
+        self.history.decision(a,'ADSB.lol','accepted',NOW+5,route)
+        snapshot = m.History(self.path).snapshot(NOW+7*3600)
+        self.assertEqual(snapshot['routes'][0]['visit_id'],a['visit_id'])
+        self.assertEqual(snapshot['history'][0]['aircraft_type'],'B738')
+        self.assertEqual(snapshot['diagnostics']['decisions'][0]['visits'],1)
+        text = __import__('json').dumps(snapshot)
+        self.assertNotIn('latitude',text)
+        self.assertNotIn('longitude',text)
+        with self.history.connect() as db:
+            self.assertEqual(db.execute('SELECT samples FROM decisions').fetchone()[0],2)
+        self.history.observe([],NOW+7*m.DAY+1)
+        self.assertEqual(self.history.snapshot(NOW+7*m.DAY+1)['history'],[])
+        with self.history.connect() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM decisions').fetchone()[0],0)
+
+    def test_old_visit_route_cannot_overwrite_new_visit_and_budget_untouched(self):
+        ledger = m.Ledger(Path(self.temp.name)/'budget.sqlite')
+        ledger.reserve(NOW)
+        first = self.history.observe([AIRLINE],NOW)[0]
+        self.history.decision(first,'ADSB.lol','accepted',NOW,m.commercial_route(CHAIN,AIRLINE))
+        second = self.history.observe([{**AIRLINE,'observed':NOW+1000}],NOW+1000)[0]
+        snap = self.history.snapshot(NOW+1000)
+        self.assertEqual(snap['history'][0]['visit_id'],second['visit_id'])
+        self.assertEqual(snap['routes'][0]['visit_id'],first['visit_id'])
+        self.assertEqual(ledger.counts(NOW+1000),(1,1))
+
+    def test_visit_hard_cap_and_out_of_order_observations(self):
+        previous=m.MAX_VISITS
+        try:
+            m.MAX_VISITS=2
+            for i in range(3):
+                self.history.observe([{**AIRLINE,'observed':NOW+i*1000}],NOW+i*1000)
+            self.assertEqual(self.history.snapshot(NOW+2000)['diagnostics']['visits'],2)
+            self.history.observe([{**AIRLINE,'observed':NOW+1900}],NOW+2000)
+            self.assertEqual(self.history.snapshot(NOW+2000)['history'][0]['last_seen'],NOW+2000)
+            self.assertEqual([a['last_seen'] for a in self.history.snapshot(NOW+2000)['history']],[NOW+2000,NOW+1000])
+        finally:
+            m.MAX_VISITS=previous
+
+    def test_heading_rejection_has_explanation(self):
+        reasons=set()
+        a={**PASSING,'callsign':'UAL323','heading':315.84,'altitude_ft':38000}
+        payload={'callsign':'UAL323','_airports':[{'iata':'BOS','lat':42.3656,'lon':-71.0096},
+                                               {'iata':'SFO','lat':37.6213,'lon':-122.379}]}
+        self.assertIsNone(m.commercial_route(payload,a,reasons=reasons))
+        self.assertIn('heading',reasons)
+
+    def test_journal_does_not_change_provider_calls_or_paid_budget(self):
+        async def run():
+            async def executor(fn,*args): return fn(*args)
+            calls=[]
+            async def request(source,data):
+                calls.append(source)
+                return (404,None)
+            ledger=m.Ledger(Path(self.temp.name)/'budget.sqlite')
+            engine=m.Enricher(ledger,executor,request,history=self.history)
+            await engine.tick([AIRLINE],NOW)
+            await engine.tick([AIRLINE],NOW+5)
+            self.assertEqual(calls,['adsblol'])
+            self.assertEqual(ledger.counts(NOW+5),(0,0))
+            reasons={r['reason'] for r in self.history.snapshot(NOW+5)['diagnostics']['decisions']}
+            self.assertIn('http_404',reasons)
+            self.assertIn('cached_no_record',reasons)
+        asyncio.run(run())

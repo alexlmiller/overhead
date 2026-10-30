@@ -199,14 +199,15 @@ export function airspace(states,now,connected) {
 }
 
 export function recentSightings(states,inside,now) {
-  const raw=states[IDS.candidate]?.attributes?.history;
+  const visits=states[IDS.routes]?.attributes?.history;
+  const raw=Array.isArray(visits)&&visits.length?visits:states[IDS.candidate]?.attributes?.history;
   const current=new Set(inside.map(a=>a.hex));
   const unique=new Map();
   for(const a of Array.isArray(raw)?raw:[]) {
     if(!a||typeof a.hex!=='string'||!(/^[a-f0-9]{6}$/i.test(a.hex))||current.has(a.hex.toLowerCase())||
       !number(a.last_seen)||a.last_seen<=0||a.last_seen>now/1000+5)continue;
-    const h=a.hex.toLowerCase();
-    if(!unique.has(h)||unique.get(h).last_seen<a.last_seen)unique.set(h,{...a,hex:h,
+    const h=a.hex.toLowerCase(),visit=a.visit_id?`${h}:${a.visit_id}`:h;
+    if(!unique.has(visit)||unique.get(visit).last_seen<a.last_seen)unique.set(visit,{...a,hex:h,
       callsign:clean(a.callsign),registration:clean(a.registration)});
   }
   return [...unique.values()].sort((a,b)=>b.last_seen-a.last_seen||a.hex.localeCompare(b.hex)).slice(0,5);

@@ -1,5 +1,6 @@
-import {IDS,ENTITY_IDS,PAGE_PATH,number,coordinates,applyEntities,project,mapGeometry,ReturnGate,readFeed,finishSession,accessToken,localClock,airspace,recentSightings,flightLabel,flightNumber,placeLabels,typeName,iconIndex,aircraftIcon,airlineLogo} from './core.mjs?v=68b20f4b01';
-import {RouteLookup,routeText} from './routes.mjs?v=fa1aa1fa19';
+import {AIRPORT_CITIES} from './airport-cities.mjs?v=5204ef039b';
+import {IDS,ENTITY_IDS,PAGE_PATH,number,coordinates,applyEntities,project,mapGeometry,ReturnGate,readFeed,finishSession,accessToken,localClock,airspace,recentSightings,flightLabel,flightNumber,placeLabels,typeName,iconIndex,aircraftIcon,airlineLogo} from './core.mjs?v=e2407f3d8e';
+import {RouteLookup,routeText,routeLabels} from './routes.mjs?v=e1cf7bf353';
 import {AIRCRAFT_TYPES,AIRCRAFT_ICONS} from './aircraft-types.mjs?v=90a7932222';
 import {AIRLINE_LOGOS,AIRLINE_DESIGNATORS} from './airlines.mjs?v=754f3a5510';
 
@@ -9,6 +10,10 @@ const query=new URLSearchParams(location.search),demo=query.get('demo')==='1';
 const tv=!demo&&query.get('office_tv')==='1';
 const scene=demo?query.get('scene'):null,gate=new ReturnGate();
 const routes=new RouteLookup();
+const routeStyle=['cities','codes','both'].includes(query.get('route_style'))?query.get('route_style'):'both';
+const labels=r=>routeLabels(r,AIRPORT_CITIES,routeStyle);
+const panelStyle=['calm','route','detailed'].includes(query.get('panel_style'))?query.get('panel_style'):'calm';
+document.documentElement.dataset.panelStyle=panelStyle;
 let states={},connected=false,lastMessage=0,needsLogin=false,denied=false,polling=null,lastPoll=0;
 let socket=null,retry=null,attempt=0,sequence=0,subscription=0,authRetry=false,connecting=false,connectAbort=null;
 let configRequest=0,homeTimeZone=demo?Intl.DateTimeFormat().resolvedOptions().timeZone:null;
@@ -118,7 +123,20 @@ function drawPlanes(all,now){
 
 function routeNode(a,cls){
   const route=routes.get(a),el=element('span',cls);
-  if(route){el.textContent=routeText(route);el.title='Reported route; actual origin and destination may differ.';}
+  if(route){
+    const {primary}=labels(route);
+    const line=element('span','route-cities');
+    for(const [i,code] of [route.origin,route.destination].entries()){
+      if(i)line.append(element('span','route-arrow',' → '));
+      const city=routeStyle==='codes'?code:(AIRPORT_CITIES[code]||code);
+      const endpoint=element('span','route-endpoint');
+      endpoint.append(element('span','route-city',city));
+      if(routeStyle==='both'&&city!==code)endpoint.append(element('small','route-code',code));
+      line.append(endpoint);
+    }
+    el.append(line);
+    el.title=`${primary} (${routeText(route)}). ${route.source||'Reported route'}${route.evidence?' · '+route.evidence.replaceAll('_',' '):''}; actual origin and destination may differ.`;
+  }
   else el.hidden=true;
   return el;
 }
@@ -131,7 +149,8 @@ function drawLists(inside,recent,now,fresh){
     const distance=element('span','flight-distance',a.distance_mi.toFixed(1));distance.append(element('small','','mi'));
     identity.append(nameNode(a,'flight-name'),distance);
     const route=routeNode(a,'flight-route');
-    const meta=[aircraftType(a),a.registration].filter(Boolean).join(' · ')||'Aircraft details unavailable';
+    const registration=a.registration!==flightLabel(a)?a.registration:'';
+    const meta=[aircraftType(a),registration].filter(Boolean).join(' · ')||'Aircraft details unavailable';
     const stats=element('div','flight-stats');
     for(const [value,unit] of [[integer(a.altitude_ft),'ft MSL'],[integer(a.speed_kt),'kt'],[number(a.heading)?`${Math.round(a.heading)%360}°`:'—','']]){
       const valueNode=element('span','',value);if(unit)valueNode.append(element('small','',unit));stats.append(valueNode);
@@ -280,6 +299,11 @@ function demoFrame(){
   routes.seed({callsign:'UAL647'},{origin:'DEN',destination:'BZN'});
   routes.seed({callsign:'DAL1198'},{origin:'MSP',destination:'SEA'});
   routes.seed({callsign:'ASA905'},{origin:'SEA',destination:'DEN'});
+  if(scene==='long-routes'){
+    routes.seed({callsign:'UAL647'},{origin:'DFW',destination:'SFO'});
+    routes.seed({callsign:'ASA221'},{origin:'JFK',destination:'DFW'});
+    routes.seed({callsign:'DAL1723'},{origin:'MSP',destination:'SFO'});
+  }
   if(scene==='routes')routes.seed({callsign:'N172SP'},{origin:'BZN',destination:'BTM'});
   states={[IDS.home]:{attributes:home},[IDS.radius]:{state:'3'},[IDS.feed]:{state:String(now/1000-(scene==='stale'?90:1)),attributes:{ac:visible}},
     [IDS.current]:{state:'none'},[IDS.candidate]:{state:'none',attributes:{history}},[IDS.session]:{state:'Manual'}};
