@@ -17,7 +17,7 @@ export class RouteLookup {
   get(a,now=Date.now()) {
     const observed=a?.position_timestamp??a?.last_seen;
     const recent=Number.isFinite(a?.last_seen)&&!Number.isFinite(a?.position_timestamp);
-    const matches=r=>(!r.historical||recent)&&r.hex===a?.hex&&call(r)===call(a)&&
+    const matches=r=>(!r.visit_id||r.visit_id===a?.visit_id)&&(!r.historical||recent)&&r.hex===a?.hex&&call(r)===call(a)&&
       r.registration===(a?.registration||'')&&Number.isFinite(observed)&&
       observed>=r.valid_from&&observed<=r.valid_until&&r.expires>now/1000&&
       code(r.origin)&&code(r.destination)&&code(r.flight);

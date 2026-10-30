@@ -76,3 +76,27 @@ when long names need ellipsis.
 identifiers, with explicit served-city overrides in `scripts/build-airport-cities.py`.
 Regenerate using `python3 scripts/build-airport-cities.py /path/to/airports.csv`
 then `make stamp`. This catalog is presentation-only, never route evidence.
+
+## Visit and route diagnostics
+
+The integration owns `/config/office_aircraft_history.sqlite`, separate from the
+paid-request ledger. It retains seven days of in-boundary visits and summarized
+provider decisions; every poll prunes to 5,000 visits / 20,000 decision groups.
+A ten-minute gap in in-boundary observations starts a new visit for the same
+hex/callsign/registration. Short dropouts stay in one visit. Existing HA history
+is imported as sightings, not reconstructed trips; receiver outages can split visits.
+
+The journal stores identifiers, type, observation times, accepted route facts,
+and provider outcomes (including heading/detour rejection, HTTP errors and budget
+limits). It stores no coordinates, raw responses or credentials. Repeated outcomes
+are aggregated; diagnostic sample counts are evaluations, not HTTP request counts.
+Outcomes can overlap for one visit, so they are not an accuracy percentage.
+`python3 scripts/route-report.py /path/to/office_aircraft_history.sqlite` reads the
+seven-day summary without writing. HA exposes the same summary in the routes
+sensor's `diagnostics` attribute, plus the latest 20 visits in `history`.
+
+Recent cards match saved routes by visit ID and observation interval, including
+after the six-hour provider cache expires. Source/evidence labels distinguish
+standing routes, dated airport-board matches and actual-flight records; these
+are provenance, not a guarantee of correctness. New diagnostics are prospective.
+The journal is private runtime data and must never be committed or publicly served.

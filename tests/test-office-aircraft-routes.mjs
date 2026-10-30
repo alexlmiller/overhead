@@ -62,3 +62,10 @@ test('bundled city catalog covers IATA and ICAO without conflating airport codes
   assert.ok(Object.keys(AIRPORT_CITIES).length>10000);
   assert.equal(AIRPORT_CITIES.ZZZZZ,undefined);
 });
+test('a saved route belongs only to its own visit',()=>{
+  const lookup=new RouteLookup();
+  lookup.update([{...route,visit_id:'first',historical:true}]);
+  const sighting={...plane,last_seen:1000,position_timestamp:undefined,visit_id:'second'};
+  assert.equal(lookup.get(sighting,1500000),null);
+  assert.equal(lookup.get({...sighting,visit_id:'first'},1500000)?.origin,'KDTO');
+});

@@ -88,7 +88,7 @@ def observations(raw, stamp, home, radius, history, now):
         rate = a.get("baro_rate") if finite(a.get("baro_rate")) else a.get("geom_rate")
         found[hexid] = {"hex": hexid, "callsign": ident(a.get("flight")), "registration": ident(a.get("r")),
                         "latitude": lat, "longitude": lon, "heading": a.get("track"), "speed_kt": a.get("gs"),
-                        "altitude_ft": a["alt_baro"], "vertical_rate": rate if finite(rate) else None,
+                        "aircraft_type": ident(a.get("t")), "altitude_ft": a["alt_baro"], "vertical_rate": rate if finite(rate) else None,
                         "observed": stamp-seen, "live": True,
                         "inside": distance(*home, lat, lon) <= radius}
     return sorted(found.values(), key=lambda a: (not (a["live"] and a["inside"]), -a["observed"]))
@@ -99,14 +99,18 @@ def bearing(lat1, lon1, lat2, lon2):
     return math.atan2(math.sin(dl)*math.cos(p2), math.cos(p1)*math.sin(p2)-math.sin(p1)*math.cos(p2)*math.cos(dl))
 
 
-def commercial_route(payload, a, previous=None):
+def commercial_route(payload, a, previous=None, reasons=None):
     """Select one plausible leg; `previous` (origin, destination) only breaks ties."""
+    reasons = reasons if reasons is not None else set()
     if not isinstance(payload, dict) or ident(payload.get("callsign")) != ident(a.get("callsign")):
+        reasons.add("missing_or_mismatched_callsign")
         return None
     airports = payload.get("_airports")
     if not isinstance(airports, list) or not 2 <= len(airports) <= 12:
+        reasons.add("missing_airports")
         return None
     if any(not isinstance(p, dict) or not position(p.get("lat"), p.get("lon")) for p in airports):
+        reasons.add("invalid_airport_position")
         return None
     p = (a["latitude"], a["longitude"])
     heading, climb = a.get("heading"), a.get("vertical_rate")
@@ -117,18 +121,22 @@ def commercial_route(payload, a, previous=None):
     for start, end in zip(airports, airports[1:]):
         origin, destination = airport_code(start), airport_code(end)
         if not origin or not destination or origin == destination:
+            reasons.add("invalid_airport_codes")
             continue
         direct = distance(start["lat"], start["lon"], end["lat"], end["lon"])
         from_origin, to_destination = distance(*p, start["lat"], start["lon"]), distance(*p, end["lat"], end["lon"])
         detour = from_origin+to_destination-direct
         if detour > max(DETOUR_MILES, DETOUR_SHARE*direct):
+            reasons.add("detour")
             continue
         departing, arriving = from_origin <= 40 < to_destination, to_destination <= 40 < from_origin
         # Near one end of a leg, an arrival does not climb away and a departure does not descend;
         # neither cruises at airliner altitude within 25 mi of that airport.
         if has_climb and ((arriving and climb >= 1000) or (departing and climb <= -1000)):
+            reasons.add("climb_descent")
             continue
         if finite(a.get("altitude_ft"), 25000) and min(from_origin, to_destination) <= 25:
+            reasons.add("cruise_near_airport")
             continue
         # Track is useful en route, but turns near an airport must not decide
         # which half of a same-callsign round trip is in progress.
@@ -137,6 +145,7 @@ def commercial_route(payload, a, previous=None):
             toward_destination = math.degrees(bearing(*p, end["lat"], end["lon"])) % 360
             error = abs((heading-toward_destination+180) % 360-180)
             if error > MAX_TRACK_ERROR:
+                reasons.add("heading")
                 continue
         legs[(origin, destination)] = {"origin": origin, "destination": destination, "detour": detour,
                                        "track_error": error, "departing": departing, "arriving": arriving}
@@ -154,6 +163,7 @@ def commercial_route(payload, a, previous=None):
         if len(matched) == 1:
             selected = matched[0]
     if not selected:
+        reasons.add("ambiguous_legs")
         return None
     return {"origin": selected["origin"], "destination": selected["destination"], "flight": ident(a["callsign"]),
             "source": "ADSB.lol", "valid_from": a["observed"]-120, "valid_until": a["observed"]+120}
@@ -379,8 +389,9 @@ class Ledger:
 
 
 class Enricher:
-    def __init__(self, ledger, run, request, use_airport_board=False, use_flightaware=True):
+    def __init__(self, ledger, run, request, use_airport_board=False, use_flightaware=True, history=None):
         self.ledger, self.run, self.request = ledger, run, request
+        self.history = history
         self.use_airport_board = use_airport_board
         self.use_flightaware = use_flightaware
         self.status = {"adsblol": "idle", "flightaware": "idle" if use_flightaware else "disabled"}
@@ -391,8 +402,22 @@ class Enricher:
     async def put(self, k, v, expires, now):
         await self.run(self.ledger.put, k, v, expires, now)
 
+    async def decision(self, a, source, reason, now, route=None):
+        if self.history:
+            await self.run(self.history.decision, a, source, reason, now, route)
+
+    async def standing(self, a, data, now):
+        reasons = set()
+        route = commercial_route(data, a, await self.previous(a, now), reasons)
+        if not route:
+            await self.decision(a, "ADSB.lol", ",".join(sorted(reasons)) or "geometry_or_flight_phase", now)
+        await self.publish(a, route, now)
+
     async def publish(self, a, route, now):
         if route:
+            route = {**route, "evidence": {"ADSB.lol": "standing_route", "BZN Airport": "dated_airport_board",
+                                           "FlightAware": "observed_flight"}.get(route["source"], "reported")}
+            await self.decision(a, route["source"], "accepted", now, route)
             entry = {**route, "hex": a["hex"], "callsign": ident(a.get("callsign")),
                      "registration": ident(a.get("registration")), "expires": now+6*3600}
             await self.put("route:"+key(a), entry, now+6*3600, now)
@@ -411,6 +436,13 @@ class Enricher:
         return None
 
     async def tick(self, aircraft, now):
+        if self.history:
+            aircraft = await self.run(self.history.observe, aircraft, now)
+        for a in aircraft:
+            if provider(a) is None:
+                await self.decision(a, "none", "unsupported_identity", now)
+            elif provider(a) == "flightaware" and not self.use_flightaware:
+                await self.decision(a, "FlightAware", "disabled", now)
         free = []
         for a in aircraft:
             if provider(a) != "adsblol":
@@ -431,18 +463,22 @@ class Enricher:
             cached = await self.get("lol:"+ident(a["callsign"]), now)
             if cached is None:
                 missing.append(a)
+                await self.decision(a, "ADSB.lol", "awaiting_lookup", now)
             elif cached:
-                await self.publish(a, commercial_route(cached, a, await self.previous(a, now)), now)
+                await self.standing(a, cached, now)
+            else:
+                await self.decision(a, "ADSB.lol", "cached_no_record", now)
         if missing and not await self.get("cooldown:adsblol", now):
             await self.put("cooldown:adsblol", True, now+5, now)
             a = missing[0]
             status, payload = await self.request("adsblol", {
                 "callsign": a["callsign"]})
             self.status["adsblol"] = str(status)
+            await self.decision(a, "ADSB.lol", "http_"+str(status), now)
             if (status == 200 and isinstance(payload, dict)) or status == 404:
                 data = payload if isinstance(payload, dict) and payload.get("callsign") == a["callsign"] else {}
                 await self.put("lol:"+a["callsign"], data, now+(3600 if data else 1800), now)
-                await self.publish(a, commercial_route(data, a, await self.previous(a, now)), now)
+                await self.standing(a, data, now)
             else:
                 await self.put("cooldown:adsblol", True, now+(900 if status == 429 else 60), now)
         commercial = [a for a in aircraft if provider(a) == "adsblol"]
@@ -462,6 +498,8 @@ class Enricher:
                 route = airport_route(board, a)
                 if route:
                     await self.publish(a, route, now)
+                else:
+                    await self.decision(a, "BZN Airport", "no_unambiguous_time_and_position_match", now)
         paid_this_tick = False
         for a in aircraft:
             if not self.use_flightaware or provider(a) != "flightaware" or not a["inside"]:
@@ -475,9 +513,11 @@ class Enricher:
                     continue
             if (paid_this_tick or (cached and (not a["live"] or now-cached["queried"] < 1800))
                     or await self.get("cooldown:flightaware", now)):
+                await self.decision(a, "FlightAware", "cached_miss_or_cooldown" if not route else "refresh_cooldown", now)
                 continue
             if not await self.run(self.ledger.reserve, now):
                 self.status["flightaware"] = "budget_exhausted"
+                await self.decision(a, "FlightAware", "budget_exhausted", now)
                 continue
             paid_this_tick = True
             # Reserve a miss before HTTP too: failed/crashed calls cannot hot-loop on restart.
@@ -488,10 +528,14 @@ class Enricher:
             status, payload = await self.request("flightaware", {"registration": ident(a["registration"]),
                 "start": start.strftime("%Y-%m-%dT%H:%M:%SZ"), "end": end.strftime("%Y-%m-%dT%H:%M:%SZ")})
             self.status["flightaware"] = str(status)
+            await self.decision(a, "FlightAware", "http_"+str(status), now)
             if status == 200:
                 routes = private_routes(payload, ident(a["registration"]), now)
                 await self.put(cache_key, {"routes": routes, "queried": now}, now+6*3600, now)
-                await self.publish(a, match_private(routes, observed.timestamp()), now)
+                selected = match_private(routes, observed.timestamp())
+                if not selected:
+                    await self.decision(a, "FlightAware", "no_unambiguous_actual_flight", now)
+                await self.publish(a, selected, now)
             else:
                 delay = DAY if status in (401, 402, 403) else 3600 if status == 429 else 60
                 await self.put("cooldown:flightaware", True, now+delay, now)
@@ -547,3 +591,104 @@ def tv_snapshot(get, time_zone):
         states[entity_id] = {"state": state.state, "attributes": dict(attributes) if keep is None
                              else {key: attributes[key] for key in keep if key in attributes}}
     return {"time_zone": time_zone, "states": states}
+
+
+RETENTION = 7 * DAY
+VISIT_GAP = 600
+MAX_VISITS = 5000
+MAX_DECISIONS = 20000
+
+
+class History:
+    def __init__(self, path):
+        import os
+        self.path = str(path)
+        fd = os.open(self.path, os.O_CREAT | os.O_RDWR, 0o600)
+        os.close(fd)
+        os.chmod(self.path, 0o600)
+        with self.connect() as db:
+            db.executescript('''
+                CREATE TABLE IF NOT EXISTS visits (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT, hex TEXT, callsign TEXT, registration TEXT,
+                  aircraft_type TEXT, first_seen REAL, last_seen REAL, route TEXT);
+                CREATE INDEX IF NOT EXISTS visit_identity ON visits(hex,callsign,registration,last_seen);
+                CREATE TABLE IF NOT EXISTS decisions (
+                  visit_id INTEGER, source TEXT, reason TEXT, origin TEXT, destination TEXT,
+                  first_at REAL, last_at REAL, samples INTEGER,
+                  PRIMARY KEY(visit_id,source,reason,origin,destination));
+            ''')
+            if db.execute('PRAGMA quick_check').fetchone()[0] != 'ok':
+                raise ValueError('Invalid aircraft history')
+
+    @contextmanager
+    def connect(self):
+        db = sqlite3.connect(self.path, timeout=5)
+        db.row_factory = sqlite3.Row
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
+
+    def observe(self, aircraft, now):
+        """Ten minutes without an in-boundary observation starts a new visit."""
+        result = []
+        with self.connect() as db:
+            for original in aircraft:
+                a = dict(original)
+                at = a.get('observed')
+                if not a.get('inside') or not finite(at, now-RETENTION, now+5):
+                    result.append(a)
+                    continue
+                identity = (a['hex'], ident(a.get('callsign')), ident(a.get('registration')))
+                previous = db.execute('SELECT * FROM visits WHERE hex=? AND callsign=? AND registration=? '
+                                      'AND first_seen<=? AND last_seen>=? ORDER BY last_seen DESC LIMIT 1',
+                                      (*identity, at, at-VISIT_GAP)).fetchone()
+                if previous:
+                    visit = previous['id']
+                    db.execute('UPDATE visits SET last_seen=MAX(last_seen,?), aircraft_type=CASE '
+                               'WHEN ?!=\'\' THEN ? ELSE aircraft_type END WHERE id=?',
+                               (at, ident(a.get('aircraft_type')), ident(a.get('aircraft_type')), visit))
+                else:
+                    if a.get('live') and db.execute('SELECT 1 FROM visits WHERE hex=? AND callsign=? '
+                            'AND registration=? AND last_seen>? LIMIT 1', (*identity, at)).fetchone():
+                        result.append(a)  # Late live packets must not manufacture an older visit.
+                        continue
+                    visit = db.execute('INSERT INTO visits(hex,callsign,registration,aircraft_type,first_seen,last_seen) '
+                                       'VALUES(?,?,?,?,?,?)', (*identity, ident(a.get('aircraft_type')), at, at)).lastrowid
+                a['visit_id'] = str(visit)
+                result.append(a)
+            db.execute('DELETE FROM visits WHERE last_seen<?', (now-RETENTION,))
+            db.execute('DELETE FROM visits WHERE id NOT IN (SELECT id FROM visits ORDER BY last_seen DESC LIMIT ?)', (MAX_VISITS,))
+            db.execute('DELETE FROM decisions WHERE last_at<? OR visit_id NOT IN (SELECT id FROM visits)', (now-RETENTION,))
+            db.execute('DELETE FROM decisions WHERE rowid NOT IN (SELECT rowid FROM decisions ORDER BY last_at DESC LIMIT ?)', (MAX_DECISIONS,))
+        return result
+
+    def decision(self, a, source, reason, now, route=None):
+        visit = a.get('visit_id')
+        if not visit:
+            return
+        origin, destination = (ident(route.get('origin')), ident(route.get('destination'))) if route else ('', '')
+        with self.connect() as db:
+            db.execute('INSERT INTO decisions VALUES(?,?,?,?,?,?,?,1) ON CONFLICT(visit_id,source,reason,origin,destination) '
+                       'DO UPDATE SET last_at=excluded.last_at,samples=samples+1',
+                       (visit, source[:40], reason[:120], origin, destination, now, now))
+            if route and reason == 'accepted':
+                # Only a whitelist of route facts; never serialize the observation or provider payload.
+                clean = {k: route[k] for k in ('origin','destination','flight','source','valid_from','valid_until','evidence') if k in route}
+                db.execute('UPDATE visits SET route=? WHERE id=?', (json.dumps(clean, allow_nan=False), visit))
+
+    def snapshot(self, now):
+        with self.connect() as db:
+            visits = db.execute('SELECT * FROM visits WHERE last_seen>=? ORDER BY last_seen DESC,id DESC LIMIT 20', (now-RETENTION,)).fetchall()
+            summary = [dict(row) for row in db.execute('SELECT source,reason,COUNT(DISTINCT visit_id) AS visits '
+                       'FROM decisions WHERE last_at>=? GROUP BY source,reason ORDER BY source,reason', (now-RETENTION,))]
+            total = db.execute('SELECT COUNT(*) FROM visits WHERE last_seen>=?', (now-RETENTION,)).fetchone()[0]
+        history, routes = [], []
+        for row in visits:
+            a = {k: row[k] for k in ('hex','callsign','registration','aircraft_type','first_seen','last_seen')}
+            a['visit_id'] = str(row['id'])
+            history.append(a)
+            if row['route']:
+                routes.append({**json.loads(row['route']), **a, 'historical': True, 'expires': row['last_seen']+RETENTION})
+        return {'history': history, 'routes': routes, 'diagnostics': {'retention_days': 7, 'visits': total, 'decisions': summary}}

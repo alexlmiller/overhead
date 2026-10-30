@@ -18,7 +18,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.network import is_cloud_connection
 
-from .model import (DAILY_LIMIT, PERIOD_LIMIT, TV_ADDRESSES, TV_FINISHED_SCRIPT, TV_HEADER, tv_address, Enricher, Ledger,
+from .model import (DAILY_LIMIT, PERIOD_LIMIT, TV_ADDRESSES, TV_FINISHED_SCRIPT, TV_HEADER, tv_address, Enricher, Ledger, History,
                     airport_board, observations, tv_peer, tv_permitted, tv_snapshot)
 
 DOMAIN = "office_aircraft_routes"
@@ -32,9 +32,10 @@ CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({
 
 
 class Coordinator:
-    def __init__(self, hass, key, ledger, use_bzn_board=False):
+    def __init__(self, hass, key, ledger, use_bzn_board=False, history=None):
         self.hass, self.key, self.ledger = hass, key, ledger
-        self.enricher = Enricher(ledger, hass.async_add_executor_job, self.request, use_airport_board=use_bzn_board, use_flightaware=bool(key))
+        self.history = history
+        self.enricher = Enricher(ledger, hass.async_add_executor_job, self.request, use_airport_board=use_bzn_board, use_flightaware=bool(key), history=history)
         self.lock = asyncio.Lock()
         self.stopped = False
         self.task = None
@@ -89,10 +90,18 @@ class Coordinator:
                     (home.attributes.get("latitude"), home.attributes.get("longitude")),
                     max(1, min(10, float(radius.state))), candidate.attributes.get("history", []), now
                 ) if all((feed, home, radius, candidate)) else []
+                if self.history and candidate:
+                    # Import retained legacy sightings without pretending to reconstruct old visits.
+                    legacy = [{**a, "observed": a.get("last_seen"), "inside": True, "live": False}
+                              for a in candidate.attributes.get("history", []) if isinstance(a, dict) and "hex" in a]
+                    await self.hass.async_add_executor_job(self.history.observe, legacy, now)
                 routes = await self.enricher.tick(aircraft, now)
+                snapshot = await self.hass.async_add_executor_job(self.history.snapshot, now) if self.history else {}
                 daily, period = await self.hass.async_add_executor_job(self.ledger.counts, now)
+                routes = snapshot.get("routes", []) + routes
                 self.hass.states.async_set(ENTITY, len(routes), {
                     "friendly_name": "Office Aircraft Routes", "routes": routes,
+                    **{k: v for k, v in snapshot.items() if k != "routes"},
                     "requests_24h": daily, "requests_31d": period,
                     "limit_24h": DAILY_LIMIT, "limit_31d": PERIOD_LIMIT,
                     "providers": self.enricher.status, "updated_at": now})
@@ -181,10 +190,11 @@ async def async_setup(hass, config):
             if not re.fullmatch(r"[A-Za-z0-9_-]{16,128}", secret):
                 raise ValueError("Invalid key format")
         ledger = await hass.async_add_executor_job(Ledger, hass.config.path("office_aircraft_routes.sqlite"))
+        history = await hass.async_add_executor_job(History, hass.config.path("office_aircraft_history.sqlite"))
     except Exception as error:
         _LOGGER.error("Aircraft routes could not start (%s)", type(error).__name__)
         return False
-    coordinator = Coordinator(hass, secret, ledger, options.get("use_bzn_board", False))
+    coordinator = Coordinator(hass, secret, ledger, options.get("use_bzn_board", False), history)
     hass.data[DOMAIN] = coordinator
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, coordinator.stop)
     if hass.is_running:

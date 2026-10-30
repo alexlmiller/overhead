@@ -1,6 +1,6 @@
 import {AIRPORT_CITIES} from './airport-cities.mjs?v=5204ef039b';
-import {IDS,ENTITY_IDS,PAGE_PATH,number,coordinates,applyEntities,project,mapGeometry,ReturnGate,readFeed,finishSession,accessToken,localClock,airspace,recentSightings,flightLabel,flightNumber,placeLabels,typeName,iconIndex,aircraftIcon,airlineLogo} from './core.mjs?v=68b20f4b01';
-import {RouteLookup,routeText,routeLabels} from './routes.mjs?v=50679358e7';
+import {IDS,ENTITY_IDS,PAGE_PATH,number,coordinates,applyEntities,project,mapGeometry,ReturnGate,readFeed,finishSession,accessToken,localClock,airspace,recentSightings,flightLabel,flightNumber,placeLabels,typeName,iconIndex,aircraftIcon,airlineLogo} from './core.mjs?v=e2407f3d8e';
+import {RouteLookup,routeText,routeLabels} from './routes.mjs?v=e1cf7bf353';
 import {AIRCRAFT_TYPES,AIRCRAFT_ICONS} from './aircraft-types.mjs?v=90a7932222';
 import {AIRLINE_LOGOS,AIRLINE_DESIGNATORS} from './airlines.mjs?v=754f3a5510';
 
@@ -135,7 +135,7 @@ function routeNode(a,cls){
       line.append(endpoint);
     }
     el.append(line);
-    el.title=`${primary} (${routeText(route)}). Reported route; actual origin and destination may differ.`;
+    el.title=`${primary} (${routeText(route)}). ${route.source||'Reported route'}${route.evidence?' · '+route.evidence.replaceAll('_',' '):''}; actual origin and destination may differ.`;
   }
   else el.hidden=true;
   return el;
