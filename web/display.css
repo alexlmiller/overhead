@@ -17,3 +17,14 @@
 .footer{border-top:1px solid var(--ink);padding-top:1.3vh;display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:clamp(8px,.58vw,14px);flex-shrink:0;color:var(--muted)}#session-caption{letter-spacing:.12em}.footer a{text-decoration:none}.source-divider{margin:0 .6em}
 @media(min-width:751px) and (max-height:650px){.recent-row{padding:.45vh 0}.recent-type{line-height:1.1;margin-top:.1vh}.recent-section{padding-top:1vh}.flight-card{padding:.7vh 0}.flight-route{margin:.5vh 0}.flight-stats{margin-top:.6vh}}
 @media(max-width:750px){.print{height:auto;min-height:100vh;padding:20px}.edition{display:none}.brand-sub{display:none}.composition{display:flex;flex-direction:column;gap:24px;margin:24px 0}.map-panel{height:55vh;min-height:320px}.flight-panel{border-left:0;padding:0;gap:24px}.flight-card{padding:16px 0}.recent-row{padding:10px 0}.recent-section{padding-top:20px}.recent-name{font-size:22px}.recent-route{font-size:13px}.flight-meta{font-size:12px}.flight-stats{font-size:16px}.flight-route{display:block;font-size:17px}.flight-name{font-size:36px}.recent-time{grid-column:3;font-size:12px}}
+
+/* Cities lead; codes preserve airport precision without competing with flight IDs. */
+.route-cities{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0}
+.route-codes{display:block;font-size:.72em;line-height:1.25;letter-spacing:.08em;color:var(--muted);margin-top:2px}
+.recent-row{grid-template-columns:minmax(0,.95fr) minmax(0,1.6fr) auto;align-items:center}
+.recent-route{min-width:0;line-height:1.25}
+@media(min-width:751px) and (max-height:650px){
+  .flight-name{font-size:25px}.flight-card{padding:.4vh 0}
+  .flight-route{font-size:12px;margin:.35vh 0}.flight-route .route-codes{margin-top:0;font-size:8px}
+  .flight-stats{margin-top:.35vh}.recent-row{padding:.3vh 0}
+}

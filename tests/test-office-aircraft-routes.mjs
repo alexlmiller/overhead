@@ -41,3 +41,24 @@ test('frontend cannot query route providers or carry the provider key',()=>{
   const html=readFileSync(new URL('index.html',root),'utf8');
   assert.match(html,/connect-src 'self';/);assert.doesNotMatch(html,/api.adsbdb.com/);
 });
+
+// City labels are presentation only; provider identifiers remain untouched.
+const {routeLabels}=await import('../web/routes.mjs');
+test('city labels retain airport precision and unknown-code fallback',()=>{
+  const cities={JFK:'New York',LGA:'New York',BZN:'Bozeman'};
+  assert.deepEqual(routeLabels({origin:'JFK',destination:'LGA'},cities),{primary:'New York → New York',secondary:'JFK → LGA'});
+  assert.deepEqual(routeLabels({origin:'ZZZZ',destination:'BZN'},cities,'cities'),{primary:'ZZZZ → Bozeman',secondary:''});
+  assert.deepEqual(routeLabels({origin:'ZZZZ',destination:'XXXX'},cities),{primary:'ZZZZ → XXXX',secondary:''});
+  assert.deepEqual(routeLabels(null,cities),{primary:'',secondary:''});
+  assert.deepEqual(routeLabels({origin:'JFK',destination:'BZN'},cities,'codes'),{primary:'JFK → BZN',secondary:''});
+});
+const {AIRPORT_CITIES}=await import('../web/airport-cities.mjs');
+test('bundled city catalog covers IATA and ICAO without conflating airport codes',()=>{
+  assert.equal(AIRPORT_CITIES.BZN,'Bozeman');
+  assert.equal(AIRPORT_CITIES.KBZN,'Bozeman');
+  assert.equal(AIRPORT_CITIES.JFK,'New York');
+  assert.equal(AIRPORT_CITIES.LGA,'New York');
+  assert.equal(AIRPORT_CITIES.FCA,'Kalispell');
+  assert.ok(Object.keys(AIRPORT_CITIES).length>10000);
+  assert.equal(AIRPORT_CITIES.ZZZZZ,undefined);
+});

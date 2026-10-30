@@ -61,3 +61,16 @@ Aircraft names/icons and airline designators are generated from the tracked
 data and documented upstream sources. See [third-party notices](../THIRD_PARTY_NOTICES.md).
 No deployment-specific hostnames, credentials, runtime SQLite files or browser
 storage belong in this repository.
+
+## Route labels
+
+Cards and recent sightings default to city names with smaller airport identifiers.
+`?route_style=cities` or `?route_style=codes` selects a single-line alternative;
+`both` is the default. Map tags retain compact airport identifiers. Missing routes
+stay hidden; unknown airports keep their exact code. Full labels remain in titles
+when long names need ellipsis.
+
+`web/airport-cities.mjs` bundles OurAirports municipality labels for IATA/ICAO
+identifiers, with explicit served-city overrides in `scripts/build-airport-cities.py`.
+Regenerate using `python3 scripts/build-airport-cities.py /path/to/airports.csv`
+then `make stamp`. This catalog is presentation-only, never route evidence.

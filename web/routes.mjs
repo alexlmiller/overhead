@@ -3,6 +3,14 @@
 const code=v=>typeof v==='string'&&/^[A-Z0-9-]{2,10}$/.test(v)?v:'';
 const call=a=>code((a?.callsign||a?.registration||'').trim().toUpperCase());
 export const routeText=r=>r?`${r.origin} → ${r.destination}`:'';
+// Unknown airports retain their exact identifier; never guess from code prefixes.
+export function routeLabels(route, cities={}, mode='both') {
+  if(!route)return {primary:'',secondary:''};
+  const codes=routeText(route);
+  const primary=mode==='codes'?codes:
+    `${cities[route.origin]||route.origin} → ${cities[route.destination]||route.destination}`;
+  return {primary,secondary:mode==='both'&&primary!==codes?codes:''};
+}
 export class RouteLookup {
   entries=[];demo=new Map();
   update(entries){this.entries=Array.isArray(entries)?entries:[];}
