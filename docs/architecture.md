@@ -28,6 +28,9 @@ assume those exist on a new HA instance. See [setup](setup.md).
 
 ADSB.lol standing routes are cached for an hour; requests are spaced at least
 5 seconds apart. Route geometry and heading reject implausible associations.
+En-route ground track must be within 60° of the destination bearing, including
+single-candidate routes; geographic proximity alone can accept an unrelated
+cross-country flight. This may hide routes during large diversions or turns.
 Climb/descent near a shared airport disambiguates adjacent legs. Accepted routes
 at sightings are stored separately so later movement does not erase history.
 Ambiguous or missing routes stay blank: these are reported associations, not

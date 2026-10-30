@@ -2,6 +2,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import importlib.util
+import math
 from pathlib import Path
 import tempfile
 import unittest
@@ -45,6 +46,27 @@ BOARD = '''<div class="current-date">September 24, 2026</div><span class="curren
 
 
 class ModelTests(unittest.TestCase):
+    def test_cross_country_standing_route_rejected_for_northwest_flight(self):
+        # UAL323 reported BOS-SFO although the user observed DEN-FCA. Use a
+        # synthetic city-center position and rounded track, never home data.
+        aircraft={**AIRLINE,'callsign':'UAL323','latitude':45.68,'longitude':-111.04,
+                  'heading':316,'speed_kt':435,'altitude_ft':38000}
+        wrong={'callsign':'UAL323','_airports':[
+            {'iata':'BOS','lat':42.3643,'lon':-71.005203},
+            {'iata':'SFO','lat':37.618999,'lon':-122.375}]}
+        self.assertIsNone(m.commercial_route(wrong,aircraft))
+        self.assertIsNone(m.commercial_route(wrong,aircraft,('BOS','SFO')))
+        correct={'callsign':'UAL323','_airports':[
+            {'iata':'DEN','lat':39.8617,'lon':-104.673},
+            {'iata':'FCA','lat':48.3105,'lon':-114.256}]}
+        route=m.commercial_route(correct,aircraft)
+        self.assertEqual((route['origin'],route['destination']),('DEN','FCA'))
+        toward=math.degrees(m.bearing(45.68,-111.04,37.618999,-122.375))%360
+        for offset in (0,59,-59):
+            self.assertIsNotNone(m.commercial_route(wrong,{**aircraft,'heading':(toward+offset)%360}))
+        for offset in (61,-61,85,100):
+            self.assertIsNone(m.commercial_route(wrong,{**aircraft,'heading':(toward+offset)%360}))
+
     def test_airport_board_is_dated_and_excludes_future_day_and_cancelled_rows(self):
         rows=m.airport_board(BOARD,NOW)
         self.assertEqual({r['flight'] for r in rows},{'UAL741','SWA1255','SWA1509'})
