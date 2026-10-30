@@ -17,6 +17,10 @@ PERIOD_LIMIT = 800
 # its great-circle length. Airways and weather bend real tracks by a few percent
 # of long legs; stale standing data typically misses by more than the leg itself.
 DETOUR_MILES, DETOUR_SHARE = 60, 0.05
+# A standing route is not a dated flight plan. Require a broadly aligned
+# ground track even when geometry leaves only one candidate; a cross-country
+# route can pass near the aircraft while it is flying toward a different city.
+MAX_TRACK_ERROR = 60
 # Regional operators fly partner-marketed flights under their own prefix and the
 # same number, e.g. SKW3676 for Delta 3676 on the BZN board.
 REGIONAL_PARTNERS = {
@@ -132,7 +136,7 @@ def commercial_route(payload, a, previous=None):
         if has_track and min(from_origin, to_destination) > 25:
             toward_destination = math.degrees(bearing(*p, end["lat"], end["lon"])) % 360
             error = abs((heading-toward_destination+180) % 360-180)
-            if error > 100:
+            if error > MAX_TRACK_ERROR:
                 continue
         legs[(origin, destination)] = {"origin": origin, "destination": destination, "detour": detour,
                                        "track_error": error, "departing": departing, "arriving": arriving}
@@ -143,7 +147,7 @@ def commercial_route(payload, a, previous=None):
     selected = nearby[0] if len(nearby) == 1 else None
     # Ties: en-route track, then a clear climb or descent near the shared airport,
     # then the leg already chosen for this flight. Otherwise the route stays blank.
-    for chosen in (lambda leg: leg["track_error"] is not None and leg["track_error"] <= 60,
+    for chosen in (lambda leg: leg["track_error"] is not None and leg["track_error"] <= MAX_TRACK_ERROR,
                    lambda leg: has_climb and ((climb <= -500 and leg["arriving"]) or (climb >= 500 and leg["departing"])),
                    lambda leg: (leg["origin"], leg["destination"]) == previous):
         matched = [leg for leg in nearby if chosen(leg)] if not selected else []
