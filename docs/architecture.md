@@ -64,8 +64,8 @@ storage belong in this repository.
 
 ## Route labels
 
-Nearby cards default to city names with smaller airport identifiers. The quieter
-recent list shows cities only; full codes remain in its title text.
+Nearby cards and recent sightings show each city followed by its airport code
+in smaller muted text on the same line. Long city names truncate before codes.
 `?route_style=cities` or `?route_style=codes` selects a single-line alternative;
 `both` is the default. `?panel_style=calm|route|detailed` compares the flight-first
 (default), journey-first and original dense panel layouts. Map tags retain compact airport identifiers. Missing routes

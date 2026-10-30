@@ -124,9 +124,17 @@ function drawPlanes(all,now){
 function routeNode(a,cls){
   const route=routes.get(a),el=element('span',cls);
   if(route){
-    const {primary,secondary}=labels(route);
-    el.append(element('span','route-cities',primary));
-    if(secondary)el.append(element('small','route-codes',secondary));
+    const {primary}=labels(route);
+    const line=element('span','route-cities');
+    for(const [i,code] of [route.origin,route.destination].entries()){
+      if(i)line.append(element('span','route-arrow',' → '));
+      const city=routeStyle==='codes'?code:(AIRPORT_CITIES[code]||code);
+      const endpoint=element('span','route-endpoint');
+      endpoint.append(element('span','route-city',city));
+      if(routeStyle==='both'&&city!==code)endpoint.append(element('small','route-code',code));
+      line.append(endpoint);
+    }
+    el.append(line);
     el.title=`${primary} (${routeText(route)}). Reported route; actual origin and destination may differ.`;
   }
   else el.hidden=true;

@@ -54,3 +54,10 @@
   :root:not([data-panel-style="detailed"]) .section-heading h1,
   :root:not([data-panel-style="detailed"]) .section-heading h2{font-size:22px}
 }
+
+/* Keep each airport identifier beside its city, including when city text truncates. */
+.route-cities{display:flex;align-items:baseline;gap:.35em}
+.route-endpoint{display:inline-flex;align-items:baseline;gap:.3em;min-width:0;flex:0 1 auto}
+.route-city{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.route-code{flex:none;font:400 .66em var(--sans);color:var(--muted);letter-spacing:.02em}
+.route-arrow{flex:none;font-family:var(--sans)}
