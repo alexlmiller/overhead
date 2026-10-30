@@ -12,6 +12,8 @@ const scene=demo?query.get('scene'):null,gate=new ReturnGate();
 const routes=new RouteLookup();
 const routeStyle=['cities','codes','both'].includes(query.get('route_style'))?query.get('route_style'):'both';
 const labels=r=>routeLabels(r,AIRPORT_CITIES,routeStyle);
+const panelStyle=['calm','route','detailed'].includes(query.get('panel_style'))?query.get('panel_style'):'calm';
+document.documentElement.dataset.panelStyle=panelStyle;
 let states={},connected=false,lastMessage=0,needsLogin=false,denied=false,polling=null,lastPoll=0;
 let socket=null,retry=null,attempt=0,sequence=0,subscription=0,authRetry=false,connecting=false,connectAbort=null;
 let configRequest=0,homeTimeZone=demo?Intl.DateTimeFormat().resolvedOptions().timeZone:null;
@@ -139,7 +141,8 @@ function drawLists(inside,recent,now,fresh){
     const distance=element('span','flight-distance',a.distance_mi.toFixed(1));distance.append(element('small','','mi'));
     identity.append(nameNode(a,'flight-name'),distance);
     const route=routeNode(a,'flight-route');
-    const meta=[aircraftType(a),a.registration].filter(Boolean).join(' · ')||'Aircraft details unavailable';
+    const registration=a.registration!==flightLabel(a)?a.registration:'';
+    const meta=[aircraftType(a),registration].filter(Boolean).join(' · ')||'Aircraft details unavailable';
     const stats=element('div','flight-stats');
     for(const [value,unit] of [[integer(a.altitude_ft),'ft MSL'],[integer(a.speed_kt),'kt'],[number(a.heading)?`${Math.round(a.heading)%360}°`:'—','']]){
       const valueNode=element('span','',value);if(unit)valueNode.append(element('small','',unit));stats.append(valueNode);

@@ -28,3 +28,29 @@
   .flight-route{font-size:12px;margin:.35vh 0}.flight-route .route-codes{margin-top:0;font-size:8px}
   .flight-stats{margin-top:.35vh}.recent-row{padding:.3vh 0}
 }
+
+/* Quieter alternatives: flight-first ledger or route-first summaries. */
+:root:not([data-panel-style="detailed"]) .recent-route .route-codes{display:none}
+:root:not([data-panel-style="detailed"]) .recent-name{font-family:var(--sans);font-size:clamp(12px,1vw,24px);font-weight:500;letter-spacing:.01em}
+:root:not([data-panel-style="detailed"]) .recent-row{padding:1vh 0;border-bottom:0;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) auto}
+:root:not([data-panel-style="detailed"]) .recent-type{font-size:clamp(8px,.6vw,14px);margin-top:3px}
+:root:not([data-panel-style="detailed"]) .recent-time{font-size:clamp(8px,.6vw,14px)}
+:root:not([data-panel-style="detailed"]) .recent-route{font-size:clamp(10px,.78vw,19px)}
+:root:not([data-panel-style="detailed"]) .flight-distance{font:500 clamp(11px,.9vw,22px) var(--sans);color:var(--muted)}
+:root:not([data-panel-style="detailed"]) .flight-stats{color:var(--muted);font-size:clamp(9px,.7vw,17px);margin-top:.7vh}
+:root:not([data-panel-style="detailed"]) .flight-name{font-size:clamp(23px,2.1vw,50px)}
+:root:not([data-panel-style="detailed"]) .flight-card{padding:1.4vh 0}
+:root:not([data-panel-style="detailed"]) .flight-route{margin:.7vh 0;font-size:clamp(12px,1vw,24px)}
+:root:not([data-panel-style="detailed"]) .flight-panel{gap:2vh}
+:root[data-panel-style="route"] .flight-card{display:flex;flex-direction:column}
+:root[data-panel-style="route"] .flight-route{order:-1;margin-top:0;margin-bottom:.7vh}
+:root[data-panel-style="route"] .flight-route .route-cities{font:clamp(21px,1.7vw,40px)/1.1 var(--serif);white-space:normal}
+:root[data-panel-style="route"] .flight-name{font:500 clamp(12px,1vw,24px) var(--sans);color:var(--accent)}
+:root[data-panel-style="route"] .flight-meta{margin-top:.6vh}
+@media(min-width:751px) and (max-height:650px){
+  :root:not([data-panel-style="detailed"]) .recent-row{padding:.6vh 0}
+  :root:not([data-panel-style="detailed"]) .flight-card{padding:.8vh 0}
+  :root:not([data-panel-style="detailed"]) .flight-route{margin:.45vh 0}
+  :root:not([data-panel-style="detailed"]) .section-heading h1,
+  :root:not([data-panel-style="detailed"]) .section-heading h2{font-size:22px}
+}

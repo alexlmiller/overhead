@@ -131,7 +131,7 @@ async function runPage(search,fetcher){
       append(...nodes){this.children.push(...nodes);},replaceChildren(...nodes){this.children=nodes;}});
     return elements.get(id);
   };
-  globalThis.document={getElementById:element,createElement:()=>element(Symbol()),createElementNS:()=>element(Symbol()),visibilityState:'visible',addEventListener(){}};
+  globalThis.document={documentElement:{dataset:{}},getElementById:element,createElement:()=>element(Symbol()),createElementNS:()=>element(Symbol()),visibilityState:'visible',addEventListener(){}};
   const listeners={};
   globalThis.window={addEventListener(type,listener){listeners[type]=listener;}};
   globalThis.location={search,pathname:PAGE_PATH};
